@@ -1,21 +1,19 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace LockImageScraper
 {
+    using System.Drawing;
+    using System.Drawing.Drawing2D;
+    using System.Drawing.Imaging;
+
     public partial class MainForm : Form
     {
         private ImageList imageList;
         public MainForm()
         {
-            InitializeComponent();
+            this.InitializeComponent();
             this.imageList = new ImageList();
             this.GetImages();
         }
@@ -30,8 +28,54 @@ namespace LockImageScraper
             var index = this.listBoxImages.SelectedIndex;
             var item = (string)this.listBoxImages.Items[index];
             var image = this.imageList.GetImage(item);
-            this.pictureBox.Image = image;
-            this.pictureBox.SizeMode = PictureBoxSizeMode.StretchImage;
+
+            var scaled = ResizeImage(image, this.pictureBox.Width);
+            this.pictureBox.Image = scaled;
+        }
+
+        /// <summary>
+        /// Resize the image to the specified side and height.
+        /// </summary>
+        /// <param name="image">The image to resize.</param>
+        /// <param name="side">The longest lenght of side to resize to.</param>
+        /// <returns>The resized image.</returns>
+        public static Bitmap ResizeImage(Image image, int side)
+        {
+            var height = side;
+            var width = side;
+            if (image.Width > image.Height)
+            {
+                height = (int)(image.Height * ((double)width / image.Width));
+            }
+            else
+            {
+                width = (int)(image.Width * ((double)height / image.Height));
+            }
+
+            var destRect = new Rectangle(0, 0, width, height);
+            var destImage = new Bitmap(width, height);
+
+            destImage.SetResolution(image.HorizontalResolution, 
+                                    image.VerticalResolution);
+
+            using (var graphics = Graphics.FromImage(destImage))
+            {
+                graphics.CompositingMode = CompositingMode.SourceCopy;
+                graphics.CompositingQuality = CompositingQuality.HighQuality;
+                graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                graphics.SmoothingMode = SmoothingMode.HighQuality;
+                graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+
+                using (var wrapMode = new ImageAttributes())
+                {
+                    wrapMode.SetWrapMode(WrapMode.TileFlipXY);
+                    graphics.DrawImage(image, destRect, 0, 0, 
+                        image.Width, image.Height, 
+                        GraphicsUnit.Pixel, wrapMode);
+                }
+            }
+
+            return destImage;
         }
     }
 }

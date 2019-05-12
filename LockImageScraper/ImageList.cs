@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
+using System.Linq;
 
 namespace LockImageScraper
 {
-    using System.IO;
-
     class ImageList
     {
         private readonly Lazy<string> imageDirectory = new Lazy<string>(GetImageDirectory);
@@ -13,10 +13,10 @@ namespace LockImageScraper
         public IEnumerable<string> Images()
         {
             var path = this.ImageDirectory;
-            var files = System.IO.Directory.GetFiles(path);
+            var files = Directory.GetFiles(path);
             foreach (var file in files)
             {
-                if (!this.IsJPEG(file))
+                if (!IsJPEG(file))
                 {
                     continue;
                 }
@@ -35,15 +35,14 @@ namespace LockImageScraper
 
         public Image GetImage(string name)
         {
-            var path = System.IO.Path.Combine(ImageDirectory, name);
+            var path = Path.Combine(ImageDirectory, name);
             try
             {
                 var image = Image.FromFile(path);
                 return image;
             }
-            catch (OutOfMemoryException)
+            catch 
             {
-                System.Diagnostics.Debug.Print("Out of memory for " + name);
                 return null;
             }
         }
@@ -60,22 +59,24 @@ namespace LockImageScraper
             return path;
         }
 
-        private bool IsJPEG(string path)
+        /// <summary>
+        /// Return true if the path points to a JPEG file.
+        /// </summary>
+        /// <param name="path">Path of file to check.</param>
+        /// <returns>True if the path corresponds to a JPEG file.</returns>
+        private static bool IsJPEG(string path)
         {
+            if (!File.Exists(path))
+            {
+                return false;
+            }
+
             using (var reader = new FileStream(path, FileMode.Open))
             {
-                var expected = new byte[] { 0xFF, 0xD8, 0xFF };
-                var buffer = new byte[expected.Length];
-                reader.Read(buffer, 0, expected.Length);
-                for (var i = 0; i < expected.Length; ++i)
-                {
-                    if (expected[i] != buffer[i])
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
+                var signature = new byte[] { 0xFF, 0xD8, 0xFF };
+                var buffer = new byte[signature.Length];
+                reader.Read(buffer, 0, signature.Length);
+                return signature.SequenceEqual(buffer);
             }
         }
     }
