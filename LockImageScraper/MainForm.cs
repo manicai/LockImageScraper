@@ -37,9 +37,9 @@ namespace LockImageScraper
         /// Resize the image to the specified side and height.
         /// </summary>
         /// <param name="image">The image to resize.</param>
-        /// <param name="side">The longest lenght of side to resize to.</param>
+        /// <param name="side">The longest length of side to resize to.</param>
         /// <returns>The resized image.</returns>
-        public static Bitmap ResizeImage(Image image, int side)
+        private static Bitmap ResizeImage(Image image, int side)
         {
             var height = side;
             var width = side;
@@ -76,6 +76,24 @@ namespace LockImageScraper
             }
 
             return destImage;
+        }
+
+        private void OnButtonSaveClicked(object sender, EventArgs e)
+        {
+            var currentImage = (string)this.listBoxImages.SelectedItem;
+
+            using (var fileDialog = new SaveFileDialog())
+            {
+                fileDialog.AddExtension = true;
+                fileDialog.OverwritePrompt = true;
+                fileDialog.DefaultExt = ".jpg";
+                var result = fileDialog.ShowDialog();
+                if (result == DialogResult.OK)
+                {
+                    var filename = fileDialog.FileName;
+                    this.imageList.SaveImage(currentImage, filename);
+                }
+            }
         }
     }
 }

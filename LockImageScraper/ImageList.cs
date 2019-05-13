@@ -47,6 +47,12 @@ namespace LockImageScraper
             }
         }
 
+        public void SaveImage(string currentImage, string outputPath)
+        {
+            var sourcePath = Path.Combine(this.ImageDirectory, currentImage);
+            File.Copy(sourcePath, outputPath);
+        }
+
         private string ImageDirectory => this.imageDirectory.Value;
 
         private static string GetImageDirectory()
