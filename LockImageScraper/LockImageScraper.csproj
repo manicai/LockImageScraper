@@ -47,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ImageList.cs" />
+    <Compile Include="ImageUtilities.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>

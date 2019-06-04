@@ -58,6 +58,7 @@
             this.pictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
             this.pictureBox.TabIndex = 1;
             this.pictureBox.TabStop = false;
+            this.pictureBox.SizeChanged += new System.EventHandler(this.OnPictureBoxResized);
             // 
             // buttonSave
             // 
