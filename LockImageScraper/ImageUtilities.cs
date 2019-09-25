@@ -12,7 +12,7 @@ namespace LockImageScraper
         /// <param name="image">The image to resize.</param>
         /// <param name="side">The longest length of side to resize to.</param>
         /// <returns>The resized image.</returns>
-        public static Bitmap ResizeImage(Image image, int side)
+        public static Bitmap ResizeImage(Image image, int side, bool padToSquare)
         {
             // Based on https://stackoverflow.com/questions/1922040/how-to-resize-an-image-c-sharp
             if (image == null || side == 0)
@@ -20,19 +20,24 @@ namespace LockImageScraper
                 return null;
             }
 
-            var height = side;
-            var width = side;
+            var destRectHeight = side;
+            var destRectWidth = side;
             if (image.Width > image.Height)
             {
-                height = (int)(image.Height * ((double)width / image.Width));
+                destRectHeight = (int)(image.Height * ((double)destRectWidth / image.Width));
             }
             else
             {
-                width = (int)(image.Width * ((double)height / image.Height));
+                destRectWidth = (int)(image.Width * ((double)destRectHeight / image.Height));
             }
 
-            var destRect = new Rectangle(0, 0, width, height);
-            var destImage = new Bitmap(width, height);
+            int destImageWidth = padToSquare ? side : destRectWidth;
+            int destImageHeight = padToSquare ? side : destRectHeight;
+            int destRectXOrigin = (destImageWidth - destRectWidth) / 2;
+            int destRectYOrigin = (destImageHeight - destRectHeight) / 2;
+
+            var destRect = new Rectangle(destRectXOrigin, destRectYOrigin, destRectWidth, destRectHeight);
+            var destImage = new Bitmap(destImageWidth, destImageHeight);
 
             destImage.SetResolution(image.HorizontalResolution, 
                 image.VerticalResolution);

@@ -6,24 +6,23 @@ namespace LockImageScraper
 {
     public partial class MainForm : Form
     {
-        private ImageList imageList;
+        private readonly ImageFinder imageFinder;
         public MainForm()
         {
             this.InitializeComponent();
-            this.imageList = new ImageList();
+            this.imageFinder = new ImageFinder();
             this.GetImages();
         }
 
         #region Event Handlers
-        private void ListBoxImagesSelectedIndexChanged(object sender, EventArgs e)
-        {
-            this.ShowSelectedImage();
-        }
-
         private void OnButtonSaveClicked(object sender, EventArgs e)
         {
-            var currentImage = (string)this.listBoxImages.SelectedItem;
+            if (this.listView.SelectedItems.Count == 0)
+            {
+                return;
+            }
 
+            var currentImage = this.listView.SelectedItems[0].Name;
             using (var fileDialog = new SaveFileDialog())
             {
                 fileDialog.AddExtension = true;
@@ -33,35 +32,22 @@ namespace LockImageScraper
                 if (result == DialogResult.OK)
                 {
                     var filename = fileDialog.FileName;
-                    this.imageList.SaveImage(currentImage, filename);
+                    this.imageFinder.SaveImage(currentImage, filename);
                 }
             }
         }
-
-        private void OnPictureBoxResized(object sender, EventArgs e)
-        {
-            this.ShowSelectedImage();
-        }
+        #endregion
 
         private void GetImages()
         {
-            this.listBoxImages.Items.AddRange(this.imageList.Images().ToArray<string>());
+            this.listView.LargeImageList = this.imageFinder.AsLargeImageList();
+            this.listView.SmallImageList = this.imageFinder.AsSmallImageList();
+            this.listView.Items.AddRange(this.imageFinder.Images().Select(this.ToListViewItem).ToArray());
         }
-        #endregion
 
-        private void ShowSelectedImage()
+        private ListViewItem ToListViewItem(string guid)
         {
-            var index = this.listBoxImages.SelectedIndex;
-            if (index == -1)
-            {
-                return;
-            }
-
-            var item = (string)this.listBoxImages.Items[index];
-            var image = this.imageList.GetImage(item);
-
-            var scaled = ImageUtilities.ResizeImage(image, this.pictureBox.Width);
-            this.pictureBox.Image = scaled;
+            return new ListViewItem { Name = guid, ImageKey = guid };
         }
     }
 }
