@@ -13,18 +13,18 @@ namespace LockImageScraper
     {
         struct ImageInfo
         {
-            public string key;
+            public string Key;
 
-            public string path;
+            public string Path;
 
-            public Image largeThumbnail;
+            public Image LargeThumbnail;
 
-            public Image smallThumbnail;
+            public Image SmallThumbnail;
         }
 
-        private const int smallSize = 100;
+        private const int SmallSize = 100;
 
-        private const int largeSize = 200;
+        private const int LargeSize = 200;
 
         private readonly Lazy<string> imageDirectory = new Lazy<string>(GetImageDirectory);
 
@@ -34,7 +34,7 @@ namespace LockImageScraper
         {
             var path = this.ImageDirectory;
             var files = Directory.GetFiles(path);
-            var images = new List<ImageInfo>();
+            var imageList = new List<ImageInfo>();
 
             foreach (var file in files)
             {
@@ -51,16 +51,16 @@ namespace LockImageScraper
                     }
 
                     var info = new ImageInfo() {
-                        key = Path.GetFileName(file),
-                        path = file,
-                        smallThumbnail = ImageUtilities.ResizeImage(image, smallSize, true),
-                        largeThumbnail = ImageUtilities.ResizeImage(image, largeSize, true),
+                        Key = Path.GetFileName(file),
+                        Path = file,
+                        SmallThumbnail = ImageUtilities.ResizeImage(image, SmallSize, true),
+                        LargeThumbnail = ImageUtilities.ResizeImage(image, LargeSize, true),
                     };
-                    images.Add(info);
+                    imageList.Add(info);
                 }
             }
 
-            return images;
+            return imageList;
         }
 
         public ImageFinder()
@@ -70,30 +70,32 @@ namespace LockImageScraper
 
         public IEnumerable<string> Images()
         {
-            return this.images.Value.Select((info) => info.key);
+            return this.images.Value.Select((info) => info.Key);
         }
 
         public ImageList AsLargeImageList()
         {
-            return this.AsImageList(largeSize, (info) => info.largeThumbnail);
+            return this.AsImageList(LargeSize, (info) => info.LargeThumbnail);
         }
 
         public ImageList AsSmallImageList()
         {
-            return this.AsImageList(smallSize, (info) => info.smallThumbnail);
+            return this.AsImageList(SmallSize, (info) => info.SmallThumbnail);
         }
 
         private ImageList AsImageList(int size, Func<ImageInfo, Image> thumbnailSelector)
         {
-            var list = new ImageList();
-            list.ImageSize = new Size(size, size);
-            list.ColorDepth = ColorDepth.Depth32Bit;
+            var list = new ImageList
+            {
+                ImageSize = new Size(size, size),
+                ColorDepth = ColorDepth.Depth32Bit
+            };
 
             foreach (var info in this.images.Value)
             {
                 var tn = thumbnailSelector(info);
                 Console.WriteLine(tn.Size);
-                list.Images.Add(info.key, thumbnailSelector(info));
+                list.Images.Add(info.Key, thumbnailSelector(info));
             }
 
             return list;
@@ -101,7 +103,7 @@ namespace LockImageScraper
 
         public Image GetImage(string name)
         {
-            var path = Path.Combine(ImageDirectory, name);
+            var path = Path.Combine(this.ImageDirectory, name);
             try
             {
                 var image = Image.FromFile(path);
