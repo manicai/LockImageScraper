@@ -17,6 +17,10 @@ namespace LockImageScraper
 
             public string Path;
 
+            public bool IsLandscape;
+
+            public bool IsPortrait;
+
             public Image LargeThumbnail;
 
             public Image SmallThumbnail;
@@ -55,6 +59,8 @@ namespace LockImageScraper
                         Path = file,
                         SmallThumbnail = ImageUtilities.ResizeImage(image, SmallSize, true),
                         LargeThumbnail = ImageUtilities.ResizeImage(image, LargeSize, true),
+                        IsLandscape = (image.Width >= image.Height),
+                        IsPortrait = (image.Height >= image.Width),
                     };
                     imageList.Add(info);
                 }
@@ -68,9 +74,19 @@ namespace LockImageScraper
             this.images = new Lazy<IList<ImageInfo>>(this.FindImages);
         }
 
-        public IEnumerable<string> Images()
+        public IEnumerable<string> Images(bool includeLandscape, bool includePortrait)
         {
-            return this.images.Value.Select((info) => info.Key);
+            foreach (var info in this.images.Value)
+            {
+                if (info.IsLandscape && includeLandscape)
+                {
+                    yield return info.Key;
+                }
+                else if (info.IsPortrait && includePortrait)
+                {
+                    yield return info.Key;
+                }
+            }
         }
 
         public ImageList AsLargeImageList()
